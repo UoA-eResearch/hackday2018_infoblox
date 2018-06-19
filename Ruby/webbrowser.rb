@@ -4,7 +4,8 @@ require 'uri'
 require 'nokogiri'
 require 'base64'
 
-#Code borrowed from WIKK WebBrowser class under MIT Lic. https://github.com/wikarekare.
+#Code from WIKK WebBrowser class under MIT Lic. https://github.com/wikarekare.
+
 class WebBrowser
   
   class Error < RuntimeError

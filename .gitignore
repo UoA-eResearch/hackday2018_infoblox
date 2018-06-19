@@ -1,4 +1,5 @@
 conf.json
-Python/
+Python/*.pyc
+Python/infoblox.py
 Docs/
-*.pyc
+
