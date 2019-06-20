@@ -1,7 +1,7 @@
 require_relative 'webbrowser.rb'
 require 'json'
 
-conf = JSON.parse(File.read('../conf.json'))
+conf = JSON.parse(File.read( "#{__dir__}/../conf.json" ))
 
 WebBrowser::https_session(host: 'ipam.auckland.ac.nz', verify_cert: false, debug: false) do |wb|
    a = wb.basic_authorization(user: conf['user'], password: conf['password'])
