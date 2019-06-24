@@ -9,7 +9,7 @@ with open( conf_file ) as f:
     conf = json.load(f)
 
 
-iba_api = infoblox.Infoblox('ipam.auckland.ac.nz', conf['user'], conf['password'], '2.5', 'default', 'default', False)
+iba_api = infoblox.Infoblox('ipam.auckland.ac.nz', conf['user'], conf['password'], '2.5', 'default', 'default', True)
 print "**** By IP ****"
 try:
     hosts = iba_api.get_host_by_ip('130.216.218.66')
@@ -23,4 +23,3 @@ try:
   print hosts
 except Exception as e:
   print e
-  
