@@ -12,7 +12,8 @@ with open( conf_file ) as f:
 iba_api = infoblox.Infoblox('ipam.auckland.ac.nz', conf['user'], conf['password'], '2.5', 'default', 'default', True)
 print "**** By IP ****"
 try:
-    hosts = iba_api.get_host_by_ip('130.216.218.66')
+    iba_api.create_host_record('130.216.218.66', 'mytardis.nectar.auckland.ac.nz') #Attach a name to an IP address
+    hosts = iba_api.get_host_by_ip('130.216.218.66') #Check that the name is attached.
     print hosts
 except Exception as e:
     print e
