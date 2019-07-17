@@ -3,3 +3,5 @@ Python/*.pyc
 Python/infoblox.py
 Docs/
 test/
+Python/cleanup_nesi_bestgrid.py
+
