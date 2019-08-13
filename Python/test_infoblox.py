@@ -17,7 +17,7 @@ try:
     print hosts
 except Exception as e:
     print e
-    
+
 print "**** By Name *****"
 try:
   hosts = iba_api.get_host(fqdn='minty.nectar.auckland.ac.nz')
