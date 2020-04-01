@@ -4,7 +4,7 @@ import infoblox #Uses Igor Feoktistov's infoblox.py
 import json
 import os
 
-conf_file = os.path.abspath( os.path.join( os.path.dirname(__file__), '../conf.json' ) )
+conf_file = os.path.abspath( os.path.join( os.path.dirname(__file__), '../conf/conf.json' ) )
 with open( conf_file ) as f:
     conf = json.load(f)
 

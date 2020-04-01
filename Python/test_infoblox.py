@@ -1,10 +1,9 @@
 #!/usr/local/bin/python
-
 import infoblox #Uses Igor Feoktistov's infoblox.py
 import json
 import os
 
-conf_file = os.path.abspath( os.path.join( os.path.dirname(__file__), '../conf.json' ) )
+conf_file = os.path.abspath( os.path.join( os.path.dirname(__file__), '../conf/conf.json' ) )
 with open( conf_file ) as f:
     conf = json.load(f)
 
@@ -20,7 +19,7 @@ except Exception as e:
 
 print "**** By Name *****"
 try:
-  hosts = iba_api.get_host(fqdn='minty.nectar.auckland.ac.nz')
+  hosts = iba_api.get_host(fqdn='akld2d18u15-api.nectar.auckland.ac.nz')
   print hosts
 except Exception as e:
   print e

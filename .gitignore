@@ -1,4 +1,4 @@
-conf.json
+conf/conf.json
 Python/*.pyc
 Python/infoblox.py
 Docs/
