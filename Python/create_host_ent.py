@@ -4,11 +4,18 @@ import infoblox #Uses Igor Feoktistov's infoblox.py
 import json
 import os
 
-conf_file = os.path.abspath( os.path.join( os.path.dirname(__file__), '../conf.json' ) )
+conf_file = os.path.abspath( os.path.join( os.path.dirname(__file__), '../conf/conf.json' ) )
 with open( conf_file ) as f:
     conf = json.load(f)
 
 iba_api = infoblox.Infoblox('ipam.auckland.ac.nz', conf['user'], conf['password'], '2.5', 'default', 'default', True)
+
+def delete_host_alias(host_name, alias):
+    try:
+        print "removing alias ", host_name, " ", alias
+        iba_api.delete_host_alias(host_fqdn=host_name, alias_fqdn=alias)
+    except Exception as e:
+        print e
 
 def create_host_record(host_name, ip):
     try:
@@ -17,10 +24,30 @@ def create_host_record(host_name, ip):
     except Exception as e:
       print e
 
+def delete_host_record(host_name):
+    try:
+      print "Deleting A record", host_name
+      iba_api.delete_host_record(fqdn=host_name)
+    except Exception as e:
+      print e
+
 def add_host_alias(host_name, alias):
     try:
-      print "creating alias", host_name, " ", alias
+      print "creating alias ", host_name, " ", alias
       iba_api.add_host_alias(host_fqdn=host_name, alias_fqdn=alias)
+    except Exception as e:
+      print e
+
+def get_host(host_name, fields=None):
+    try:
+      print "Getting host details ", host_name
+      return iba_api.get_host(fqdn=host_name, fields=fields)
+    except Exception as e:
+      print e
+
+def get_host_by_ip(ip_v4):
+    try:
+      return iba_api.get_host_by_ip(ip_v4=ip_v4)
     except Exception as e:
       print e
 
@@ -222,29 +249,29 @@ h18_g18_hosts = {
     "10.31.92.76": ["akld2g18s13-repl","g18s13-repl", "ntr-sto13-repl","sto13-repl"],
     "10.31.92.77": ["akld2h18s13-repl","h18s13-repl", "ntr-sto14-repl","sto14-repl"],
     #
-    "10.31.80.128": ["akld2g18u24-p","g18u24-p", "ntr-cop01-p","cop01-p", "cop01"],
-    "10.31.80.129": ["akld2g18u25-p","g18u25-p", "ntr-cop02-p","cop02-p", "cop02"],
-    "10.31.80.130": ["akld2g18u26-p","g18u26-p", "ntr-cop03-p","cop03-p", "cop03"],
-    "10.31.80.131": ["akld2h18u23-p","h18u23-p", "ntr-cop04-p","cop04-p", "cop04"],
-    "10.31.80.132": ["akld2h18u24-p","h18u24-p", "ntr-cop05-p","cop05-p", "cop05"],
-    "10.31.80.133": ["akld2h18u25-p","h18u25-p", "ntr-cop06-p","cop06-p", "cop06"],
-    "10.31.80.134": ["akld2h18u26-p","h18u26-p", "ntr-cop07-p","cop07-p", "cop07"],
-    "10.31.80.135": ["akld2g18u44-p","g18u44-p", "ntr-cop08-p","cop08-p", "cop08"],
-    "10.31.80.136": ["akld2g18u27-p","g18u27-p", "ntr-cop09-p","cop09-p", "cop09"],
-    "10.31.80.137": ["akld2h18u27-p","h18u27-p", "ntr-cop10-p","cop10-p", "cop10"],
-    "10.31.80.138": ["akld2g18u28-p","g18u28-p", "ntr-cop11-p","cop11-p", "cop11"],
+    "10.31.80.128": ["akld2g18u24-p","g18u24-p", "ntr-cop01-p","cop01-p"],
+    "10.31.80.129": ["akld2g18u25-p","g18u25-p", "ntr-cop02-p","cop02-p"],
+    "10.31.80.130": ["akld2g18u26-p","g18u26-p", "ntr-cop03-p","cop03-p"],
+    "10.31.80.131": ["akld2h18u23-p","h18u23-p", "ntr-cop04-p","cop04-p"],
+    "10.31.80.132": ["akld2h18u24-p","h18u24-p", "ntr-cop05-p","cop05-p"],
+    "10.31.80.133": ["akld2h18u25-p","h18u25-p", "ntr-cop06-p","cop06-p"],
+    "10.31.80.134": ["akld2h18u26-p","h18u26-p", "ntr-cop07-p","cop07-p"],
+    "10.31.80.135": ["akld2g18u44-p","g18u44-p", "ntr-cop08-p","cop08-p"],
+    "10.31.80.136": ["akld2g18u27-p","g18u27-p", "ntr-cop09-p","cop09-p"],
+    "10.31.80.137": ["akld2h18u27-p","h18u27-p", "ntr-cop10-p","cop10-p"],
+    "10.31.80.138": ["akld2g18u28-p","g18u28-p", "ntr-cop11-p","cop11-p"],
     #
-    "10.31.84.128": ["akld2g18u24-api","g18u24-api", "ntr-cop01-api","cop01-api"],
-    "10.31.84.129": ["akld2g18u25-api","g18u25-api", "ntr-cop02-api","cop02-api"],
-    "10.31.84.130": ["akld2g18u26-api","g18u26-api", "ntr-cop03-api","cop03-api"],
-    "10.31.84.131": ["akld2h18u23-api","h18u23-api", "ntr-cop04-api","cop04-api"],
-    "10.31.84.132": ["akld2h18u24-api","h18u24-api", "ntr-cop05-api","cop05-api"],
-    "10.31.84.133": ["akld2h18u25-api","h18u25-api", "ntr-cop06-api","cop06-api"],
-    "10.31.84.134": ["akld2h18u26-api","h18u26-api", "ntr-cop07-api","cop07-api"],
-    "10.31.84.135": ["akld2g18u44-api","g18u44-api", "ntr-cop08-api","cop08-api"],
-    "10.31.84.136": ["akld2g18u27-api","g18u27-api", "ntr-cop09-api","cop09-api"],
-    "10.31.84.137": ["akld2h18u27-api","h18u27-api", "ntr-cop10-api","cop10-api"],
-    "10.31.84.138": ["akld2g18u28-api","g18u28-api", "ntr-cop11-api","cop11-api"],
+    "10.31.84.128": ["akld2g18u24-api","g18u24-api", "ntr-cop01-api","cop01-api", "akld2g18u24", "cop01"],
+    "10.31.84.129": ["akld2g18u25-api","g18u25-api", "ntr-cop02-api","cop02-api", "akld2g18u25", "cop02"],
+    "10.31.84.130": ["akld2g18u26-api","g18u26-api", "ntr-cop03-api","cop03-api", "akld2g18u26", "cop03"],
+    "10.31.84.131": ["akld2h18u23-api","h18u23-api", "ntr-cop04-api","cop04-api", "akld2h18u23", "cop04"],
+    "10.31.84.132": ["akld2h18u24-api","h18u24-api", "ntr-cop05-api","cop05-api", "akld2h18u24", "cop05"],
+    "10.31.84.133": ["akld2h18u25-api","h18u25-api", "ntr-cop06-api","cop06-api", "akld2h18u25", "cop06"],
+    "10.31.84.134": ["akld2h18u26-api","h18u26-api", "ntr-cop07-api","cop07-api", "akld2h18u26", "cop07"],
+    "10.31.84.135": ["akld2g18u44-api","g18u44-api", "ntr-cop08-api","cop08-api", "akld2g18u44", "cop08"],
+    "10.31.84.136": ["akld2g18u27-api","g18u27-api", "ntr-cop09-api","cop09-api", "akld2g18u27", "cop09"],
+    "10.31.84.137": ["akld2h18u27-api","h18u27-api", "ntr-cop10-api","cop10-api", "akld2h18u27", "cop10"],
+    "10.31.84.138": ["akld2g18u28-api","g18u28-api", "ntr-cop11-api","cop11-api", "akld2g18u28", "cop11"],
     #
     "10.31.88.128": ["akld2g18u24-ceph","g18u24-ceph", "ntr-cop01-ceph","cop01-ceph"],
     "10.31.88.129": ["akld2g18u25-ceph","g18u25-ceph", "ntr-cop02-ceph","cop02-ceph"],
@@ -360,9 +387,10 @@ h18_g18_hosts = {
     "10.31.80.37":	["ntr-nova02-p", "nova02-p"],
     "10.31.84.37":	["ntr-nova02-api", "nova02-api"],
     #
-    "10.31.80.39":	["ntr-cinder01-p", "cinder01-p"],
-    "10.31.84.39":	["ntr-cinder01-api", "cinder01-api"],
-    "10.31.88.39":	["ntr-cinder01-api", "cinder01-api"],
+    "10.31.80.38":	["ntr-cinder01", "ntr-cinder01-p", "cinder01-p"],
+    "10.31.84.38":	["ntr-cinder01-api", "cinder01-api"],
+    "10.31.88.38":	["ntr-cinder01-ceph", "cinder01-ceph"],
+    #
     #
     "10.31.80.46":	["ntr-db01", "ntr-db01-p", "db01-p"],
     "10.31.84.46":	["ntr-db01-api", "db01-api"],
@@ -394,6 +422,11 @@ h18_g18_hosts = {
     #"130.216.95.90": ["ntr-gw02"],
     "10.31.83.253":	["ntr-gw02-p", "gw02-p"],
     "10.31.87.253":	["ntr-gw02-api",  "gw02-api"],
+}
+
+didnttake = {
+    "10.31.84.38":	["ntr-cinder01-api", "cinder01-api"],
+    "10.31.88.38":	["ntr-cinder01-ceph", "cinder01-ceph"],
 }
 
 e18_d18_hosts = {
@@ -437,8 +470,8 @@ e18_d18_hosts = {
     "10.31.81.38": ["akld2e18u38-p","e18u38-p"],
     "10.31.81.39": ["akld2e18u39-p","e18u39-p"],
     "10.31.81.40": ["akld2e18u40-p","e18u40-p"],
-    "10.31.81.41": ["akld2e18u40-p","e18u41-p"],
-    "10.31.81.42": ["akld2e18u40-p","e18u42-p"],
+    "10.31.81.41": ["akld2e18u41-p","e18u41-p"],
+    "10.31.81.42": ["akld2e18u42-p","e18u42-p"],
 
     #"10.31.81.101": ["akld2d18u01-p",  "d18u01-p"],
     "10.31.81.102": ["akld2d18u02-p",  "d18u02-p"],
@@ -523,8 +556,8 @@ e18_d18_hosts = {
     "10.31.85.38": ["akld2e18u38-api","e18u38-api"],
     "10.31.85.39": ["akld2e18u39-api","e18u39-api"],
     "10.31.85.40": ["akld2e18u40-api","e18u40-api"],
-    "10.31.85.41": ["akld2e18u40-api","e18u41-api"],
-    "10.31.85.42": ["akld2e18u40-api","e18u42-api"],
+    "10.31.85.41": ["akld2e18u41-api","e18u41-api"],
+    "10.31.85.42": ["akld2e18u42-api","e18u42-api"],
 
     #"10.31.85.101": ["akld2d18u01-api",  "d18u01-api"],
     "10.31.85.102": ["akld2d18u02-api",  "d18u02-api"],
@@ -609,8 +642,8 @@ e18_d18_hosts = {
     "10.31.89.38": ["akld2e18u38-ceph","e18u38-ceph"],
     "10.31.89.39": ["akld2e18u39-ceph","e18u39-ceph"],
     "10.31.89.40": ["akld2e18u40-ceph","e18u40-ceph"],
-    "10.31.89.41": ["akld2e18u40-ceph","e18u41-ceph"],
-    "10.31.89.42": ["akld2e18u40-ceph","e18u42-ceph"],
+    "10.31.89.41": ["akld2e18u41-ceph","e18u41-ceph"],
+    "10.31.89.42": ["akld2e18u42-ceph","e18u42-ceph"],
 
     #"10.31.89.101": ["akld2d18u01-ceph",  "d18u01-ceph"],
     "10.31.89.102": ["akld2d18u02-ceph",  "d18u02-ceph"],
@@ -663,11 +696,341 @@ b15_b18_hosts = {
     "10.31.82.25": ["akld2b18u25-p", "b18u25-p", "akld2b18u25", "b18u25"],
 }
 
-hosts = e18_d18_management
+migration_alias = {
+    "10.31.81.1": ["akld2e18u01-api", "akld2e18u01"],
+    "10.31.81.2": ["akld2e18u02-api", "akld2e18u02"],
+    "10.31.81.3": ["akld2e18u03-api", "akld2e18u03"],
+    "10.31.81.4": ["akld2e18u04-api", "akld2e18u04"],
+    "10.31.81.5": ["akld2e18u05-api", "akld2e18u05"],
+    "10.31.81.6": ["akld2e18u06-api", "akld2e18u06"],
+    "10.31.81.7": ["akld2e18u07-api", "akld2e18u07"],
+    "10.31.81.8": ["akld2e18u08-api", "akld2e18u08"],
+    "10.31.81.9": ["akld2e18u09-api", "akld2e18u09"],
+    "10.31.81.10": ["akld2e18u10-api", "akld2e18u10"],
+    "10.31.81.11": ["akld2e18u11-api", "akld2e18u11"],
+    "10.31.81.12": ["akld2e18u12-api", "akld2e18u12"],
+    "10.31.81.13": ["akld2e18u13-api", "akld2e18u13"],
+    "10.31.81.14": ["akld2e18u14-api", "akld2e18u14"],
+    "10.31.81.15": ["akld2e18u15-api", "akld2e18u15"],
+    "10.31.81.16": ["akld2e18u16-api", "akld2e18u16"],
+    "10.31.81.17": ["akld2e18u17-api", "akld2e18u17"],
+    "10.31.81.18": ["akld2e18u18-api", "akld2e18u18"],
+    "10.31.81.19": ["akld2e18u19-api", "akld2e18u19"],
+    "10.31.81.20": ["akld2e18u20-api", "akld2e18u20"],
+    #"10.31.81.21": ["akld2e18u21-api", "akld2e18u21"],
+    #"10.31.81.22": ["akld2e18u22-api", "akld2e18u22"],
+    "10.31.81.23": ["akld2e18u23-api", "akld2e18u23"],
+    "10.31.81.24": ["akld2e18u24-api", "akld2e18u24"],
+    "10.31.81.25": ["akld2e18u25-api", "akld2e18u25"],
+    "10.31.81.26": ["akld2e18u26-api", "akld2e18u26"],
+    "10.31.81.27": ["akld2e18u27-api", "akld2e18u27"],
+    "10.31.81.28": ["akld2e18u28-api", "akld2e18u28"],
+    "10.31.81.29": ["akld2e18u29-api", "akld2e18u29"],
+    "10.31.81.30": ["akld2e18u30-api", "akld2e18u30"],
+    "10.31.81.31": ["akld2e18u31-api", "akld2e18u31"],
+    "10.31.81.32": ["akld2e18u32-api", "akld2e18u32"],
+    "10.31.81.33": ["akld2e18u33-api", "akld2e18u33"],
+    "10.31.81.34": ["akld2e18u34-api", "akld2e18u34"],
+    "10.31.81.35": ["akld2e18u35-api", "akld2e18u35"],
+    "10.31.81.36": ["akld2e18u36-api", "akld2e18u36"],
+    "10.31.81.37": ["akld2e18u37-api", "akld2e18u37"],
+    "10.31.81.38": ["akld2e18u38-api", "akld2e18u38"],
+    "10.31.81.39": ["akld2e18u39-api", "akld2e18u39"],
+    "10.31.81.40": ["akld2e18u40-api", "akld2e18u40"],
+    "10.31.81.41": ["akld2e18u41-api", "akld2e18u41"],
+    "10.31.81.42": ["akld2e18u42-api", "akld2e18u42"],
 
-for ip in hosts:
-    create_host_record(host_name = hosts[ip][0]+".nectar.auckland.ac.nz", ip=ip) 
-    for n in range(1,len(hosts[ip])):
-        add_host_alias(host_name=hosts[ip][0]+".nectar.auckland.ac.nz", alias=hosts[ip][n]+".nectar.auckland.ac.nz")
+    #"10.31.81.101": ["akld2d18u01-api", "akld2d18u01"],
+    "10.31.81.102": ["akld2d18u02-api", "akld2d18u02"],
+    "10.31.81.103": ["akld2d18u03-api", "akld2d18u03"],
+    "10.31.81.104": ["akld2d18u04-api", "akld2d18u04"],
+    "10.31.81.105": ["akld2d18u05-api", "akld2d18u05"],
+    "10.31.81.106": ["akld2d18u06-api", "akld2d18u06"],
+    "10.31.81.107": ["akld2d18u07-api", "akld2d18u07"],
+    "10.31.81.108": ["akld2d18u08-api", "akld2d18u08"],
+    "10.31.81.109": ["akld2d18u09-api", "akld2d18u09"],
+    "10.31.81.110": ["akld2d18u10-api", "akld2d18u10"],
+    "10.31.81.111": ["akld2d18u11-api", "akld2d18u11"],
+    "10.31.81.112": ["akld2d18u12-api", "akld2d18u12"],
+    "10.31.81.113": ["akld2d18u13-api", "akld2d18u13"],
+    "10.31.81.114": ["akld2d18u14-api", "akld2d18u14"],
+    "10.31.81.115": ["akld2d18u15-api", "akld2d18u15"],
+    "10.31.81.116": ["akld2d18u16-api", "akld2d18u16"],
+    #"10.31.81.117": ["akld2d18u17-api", "akld2d18u17"],
+    "10.31.81.118": ["akld2d18u18-api", "akld2d18u18"],
+    #"10.31.81.119": ["akld2d18u19-api", "akld2d18u19"],
+    #"10.31.81.120": ["akld2d18u20-api", "akld2d18u20"],
+    #"10.31.81.121": ["akld2d18u21-api", "akld2d18u21"],
+    "10.31.81.122": ["akld2d18u22-api", "akld2d18u22"],
+    #"10.31.81.123": ["akld2d18u23-api", "akld2d18u23"],
+    "10.31.81.124": ["akld2d18u24-api", "akld2d18u24"],
+    #"10.31.81.125": ["akld2d18u25-api", "akld2d18u25"],
+    "10.31.81.126": ["akld2d18u26-api", "akld2d18u26"],
+    #"10.31.81.127": ["akld2d18u27-api", "akld2d18u27"],
+    "10.31.81.128": ["akld2d18u28-api", "akld2d18u28"],
+    #"10.31.81.129": ["akld2d18u29-api", "akld2d18u29"],
+    "10.31.81.130": ["akld2d18u30-api", "akld2d18u30"],
+    #"10.31.81.131": ["akld2d18u31-api", "akld2d18u31"],
+    "10.31.81.132": ["akld2d18u32-api", "akld2d18u32"],
+    #"10.31.81.133": ["akld2d18u33-api", "akld2d18u33"],
+    "10.31.81.134": ["akld2d18u34-api", "akld2d18u34"],
+    #"10.31.81.135": ["akld2d18u35-api", "akld2d18u35"],
+    "10.31.81.136": ["akld2d18u36-api", "akld2d18u36"],
+    #"10.31.81.137": ["akld2d18u37-api", "akld2d18u37"],
+    "10.31.81.138": ["akld2d18u38-api", "akld2d18u38"],
+    #"10.31.81.139": ["akld2d18u39-api", "akld2d18u39"],
+    "10.31.81.140": ["akld2d18u40-api", "akld2d18u40"],
+    #"10.31.81.141": ["akld2d18u41-api", "akld2d18u41"],
+    #"10.31.81.142": ["akld2d18u42-api", "akld2d18u42"],
+}
 
-print "done"
+h15_i15_hosts = {
+    "172.31.83.151": ["akld2h15u01-m", "h15u01-m"],
+    "172.31.83.153": ["akld2h15u03-m", "h15u03-m"],
+    "172.31.83.155": ["akld2h15u05-m", "h15u05-m"],
+    "172.31.83.185": ["akld2h15u35-m", "h15u35-m"],
+    "172.31.83.180": ["akld2h15x30-m", "h15x30-m", "h15x30"],
+    "172.31.83.181": ["akld2h15x31-m", "h15x31-m", "h15x31"],
+    "172.31.83.183": ["akld2h15x33-m", "h15x33-m", "h15x33"],
+    
+    "10.31.83.151": ["akld2h15u01-p", "h15u01-p", "ntr-sto15-p"],
+    "10.31.83.153": ["akld2h15u03-p", "h15u03-p", "ntr-sto17-p"],
+    "10.31.83.155": ["akld2h15u05-p", "h15u05-p", "ntr-sto19-p"],
+    "10.31.83.185": ["akld2h15u35-p", "h15u35-p"],
+    
+    "10.31.87.185": ["akld2h15u35-api", "h15u35-api", "akld2h15u35", "h15u35"],
+
+    "10.31.91.151": ["akld2h15u01-ceph", "h15u01-ceph", "ntr-sto15-ceph", "ntr-sto15", "sto15", "akld2h15u01", "h15u01"],
+    "10.31.91.153": ["akld2h15u03-ceph", "h15u03-ceph", "ntr-sto17-ceph", "ntr-sto17", "sto17", "akld2h15u03", "h15u03"],
+    "10.31.91.155": ["akld2h15u05-ceph", "h15u05-ceph", "ntr-sto19-ceph", "ntr-sto19", "sto19", "akld2h15u05", "h15u05"],
+    "10.31.91.185": ["akld2h15u35-ceph", "h15u35-ceph"],
+
+    "10.31.95.151": ["akld2h15u01-repl", "h15u01-repl", "ntr-sto15-repl"],
+    "10.31.95.153": ["akld2h15u03-repl", "h15u03-repl", "ntr-sto17-repl"],
+    "10.31.95.155": ["akld2h15u05-repl", "h15u05-repl", "ntr-sto19-repl"],
+
+    "172.31.83.51": ["akld2i15u01-m", "i15u01-m"],
+    "172.31.83.53": ["akld2i15u03-m", "i15u03-m"],
+    "172.31.83.55": ["akld2i15u05-m", "i15u05-m"],
+    "172.31.83.80": ["akld2i15x30-m", "i15x30-m", "i15x30"],
+    "172.31.83.81": ["akld2i15x31-m", "i15x31-m", "i15x31"],
+    "172.31.83.83": ["akld2i15x33-m", "i15x33-m", "i15x33"],
+    
+    "10.31.83.51": ["akld2i15u01-p", "i15u01-p", "ntr-sto16-p"],
+    "10.31.83.53": ["akld2i15u03-p", "i15u03-p", "ntr-sto18-p"],
+    "10.31.83.55": ["akld2i15u05-p", "i15u05-p", "ntr-sto20-p"],
+    "10.31.83.85": ["akld2i15u35-p", "i15u35-p"],
+    
+    "10.31.91.51": ["akld2i15u01-ceph", "i15u01-ceph", "ntr-sto16-ceph", "ntr-sto16", "sto16", "akld2i15u01", "i15u01"],
+    "10.31.91.53": ["akld2i15u03-ceph", "i15u03-ceph", "ntr-sto18-ceph", "ntr-sto18", "sto18", "akld2i15u03", "i15u03"],
+    "10.31.91.55": ["akld2i15u05-ceph", "i15u05-ceph", "ntr-sto20-ceph", "ntr-sto20", "sto20", "akld2i15u01", "i15u05"],
+
+    "10.31.95.51": ["akld2i15u01-repl", "i15u01-repl", "ntr-sto16-repl"],
+    "10.31.95.53": ["akld2i15u03-repl", "i15u03-repl", "ntr-sto18-repl"],
+    "10.31.95.55": ["akld2i15u05-repl", "i15u05-repl", "ntr-sto20-repl"],
+}
+
+h18_switches = {
+    "172.31.83.146": ["akld2h18x46-m", "h18x46-m", "h18x46"],
+    "172.31.83.147": ["akld2h18x47-m", "h18x47-m", "h18x47"],
+}
+
+rename_G18_entries_to_h18 = { # ITS changed the rack names on us :(
+    "172.31.80.1": ["akld2g18x40", "ntr-x1-mgmt","x1-m","x1","g18x40-m","g18x40"],
+    "172.31.80.2": ["akld2g18x37","ntr-x2-prov1","x2-m","x2","g18x37-m","g18x37"],
+    "172.31.80.4": ["akld2g18x32","ntr-x4-core1","x4-m","x4","g18x32-m","g18x32"],
+    "172.31.80.6": ["akld2g18x31","ntr-x6-core3","x6-m","x6","g18x31-m","g18x31"],
+
+    "172.31.80.128": ["akld2g18u24-m","g18u24-m","d2ntrcop01-idrac","ntr-cop01-m","cop01-m"],
+    "172.31.80.129": ["akld2g18u25-m","g18u25-m","d2ntrcop02-idrac","ntr-cop02-m","cop02-m"],
+    "172.31.80.130": ["akld2g18u26-m","g18u26-m","d2ntrcop03-idrac","ntr-cop03-m","cop03-m"],
+    "172.31.80.135": ["akld2g18u44-m","g18u44-m","d2ntrcop08-idrac","ntr-cop08-m","cop08-m"],
+    "172.31.80.136": ["akld2g18u27-m","g18u27-m","d2ntrcop09-idrac","ntr-cop09-m","cop09-m"],
+    "172.31.80.138": ["akld2g18u28-m","g18u28-m","d2ntrcop11-idrac","ntr-cop11-m","cop11-m"],
+
+    "172.31.80.31": ["akld2g18a17-m","g18a17-m","d2ntradm01-idrac","ntr-adm01-m","adm01-m"],
+    "172.31.80.41": ["akld2g18a18-m","g18a18-m","d2ntrctr01-idrac","ntr-ctr01-m","ctr01-m"],
+    "172.31.80.43": ["akld2g18a19-m","g18a19-m","d2ntrctr03-idrac","ntr-ctr03-m","ctr03-m"],
+
+    "172.31.80.64": ["akld2g18s01-m","g18s01-m","d2ntrsto01-idrac","ntr-sto01-m","sto01-m"],
+    "172.31.80.65": ["akld2g18s03-m","g18s03-m","d2ntrsto02-idrac","ntr-sto02-m","sto02-m"],
+    "172.31.80.66": ["akld2g18s05-m","g18s05-m","d2ntrsto03-idrac","ntr-sto03-m","sto03-m"],
+    "172.31.80.67": ["akld2g18s07-m","g18s07-m","d2ntrsto04-idrac","ntr-sto04-m","sto04-m"],
+    "172.31.80.72": ["akld2g18s09-m","g18s09-m","d2ntrsto09-idrac","ntr-sto09-m","sto09-m"],
+    "172.31.80.74": ["akld2g18s11-m","g18s11-m","d2ntrsto11-idrac","ntr-sto11-m","sto11-m"],
+    "172.31.80.76": ["akld2g18s13-m","g18s13-m","d2ntrsto13-idrac","ntr-sto13-m","sto13-m"],
+
+    "10.31.80.31": ["akld2g18a17-p","g18a17-p", "ntr-adm01-p","adm01-p", "adm01"],
+    "10.31.80.41": ["akld2g18a18-p","g18a18-p", "ntr-ctr01-p","ctr01-p", "ctr01"],
+    "10.31.80.43": ["akld2g18a19-p","g18a19-p", "ntr-ctr03-p","ctr03-p", "ctr03"],
+
+    "10.31.80.64": ["akld2g18s01-p","g18s01-p", "ntr-sto01-p","sto01-p", "sto01"],
+    "10.31.80.65": ["akld2g18s03-p","g18s03-p", "ntr-sto02-p","sto02-p", "sto02"],
+    "10.31.80.66": ["akld2g18s05-p","g18s05-p", "ntr-sto03-p","sto03-p", "sto03"],
+    "10.31.80.67": ["akld2g18s07-p","g18s07-p", "ntr-sto04-p","sto04-p", "sto04"],
+    "10.31.80.72": ["akld2g18s09-p","g18s09-p", "ntr-sto09-p","sto09-p", "sto09"],
+    "10.31.80.74": ["akld2g18s11-p","g18s11-p", "ntr-sto11-p","sto11-p", "sto11"],
+    "10.31.80.76": ["akld2g18s13-p","g18s13-p", "ntr-sto13-p","sto13-p", "sto13"],
+
+    "10.31.88.64": ["akld2g18s01-ceph","g18s01-ceph", "ntr-sto01-ceph","sto01-ceph"],
+    "10.31.88.65": ["akld2g18s03-ceph","g18s03-ceph", "ntr-sto02-ceph","sto02-ceph"],
+    "10.31.88.66": ["akld2g18s05-ceph","g18s05-ceph", "ntr-sto03-ceph","sto03-ceph"],
+    "10.31.88.67": ["akld2g18s07-ceph","g18s07-ceph", "ntr-sto04-ceph","sto04-ceph"],
+    "10.31.88.72": ["akld2g18s09-ceph","g18s09-ceph", "ntr-sto09-ceph","sto09-ceph"],
+    "10.31.88.74": ["akld2g18s11-ceph","g18s11-ceph", "ntr-sto11-ceph","sto11-ceph"],
+    "10.31.88.76": ["akld2g18s13-ceph","g18s13-ceph", "ntr-sto13-ceph","sto13-ceph"],
+
+    "10.31.92.64": ["akld2g18s01-repl","g18s01-repl", "ntr-sto01-repl","sto01-repl"],
+    "10.31.92.65": ["akld2g18s03-repl","g18s03-repl", "ntr-sto02-repl","sto02-repl"],
+    "10.31.92.66": ["akld2g18s05-repl","g18s05-repl", "ntr-sto03-repl","sto03-repl"],
+    "10.31.92.67": ["akld2g18s07-repl","g18s07-repl", "ntr-sto04-repl","sto04-repl"],
+    "10.31.92.72": ["akld2g18s09-repl","g18s09-repl", "ntr-sto09-repl","sto09-repl"],
+    "10.31.92.74": ["akld2g18s11-repl","g18s11-repl", "ntr-sto11-repl","sto11-repl"],
+    "10.31.92.76": ["akld2g18s13-repl","g18s13-repl", "ntr-sto13-repl","sto13-repl"],
+
+    "10.31.80.128": ["akld2g18u24-p","g18u24-p", "ntr-cop01-p","cop01-p"],
+    "10.31.80.129": ["akld2g18u25-p","g18u25-p", "ntr-cop02-p","cop02-p"],
+    "10.31.80.130": ["akld2g18u26-p","g18u26-p", "ntr-cop03-p","cop03-p"],
+    "10.31.80.135": ["akld2g18u44-p","g18u44-p", "ntr-cop08-p","cop08-p"],
+    "10.31.80.136": ["akld2g18u27-p","g18u27-p", "ntr-cop09-p","cop09-p"],
+    "10.31.80.138": ["akld2g18u28-p","g18u28-p", "ntr-cop11-p","cop11-p"],
+
+    "10.31.84.128": ["akld2g18u24-api","g18u24-api", "ntr-cop01-api","cop01-api", "akld2g18u24", "cop01"],
+    "10.31.84.129": ["akld2g18u25-api","g18u25-api", "ntr-cop02-api","cop02-api", "akld2g18u25", "cop02"],
+    "10.31.84.130": ["akld2g18u26-api","g18u26-api", "ntr-cop03-api","cop03-api", "akld2g18u26", "cop03"],
+    "10.31.84.135": ["akld2g18u44-api","g18u44-api", "ntr-cop08-api","cop08-api", "akld2g18u44", "cop08"],
+    "10.31.84.136": ["akld2g18u27-api","g18u27-api", "ntr-cop09-api","cop09-api", "akld2g18u27", "cop09"],
+    "10.31.84.138": ["akld2g18u28-api","g18u28-api", "ntr-cop11-api","cop11-api", "akld2g18u28", "cop11"],
+
+    "10.31.88.128": ["akld2g18u24-ceph","g18u24-ceph", "ntr-cop01-ceph","cop01-ceph"],
+    "10.31.88.129": ["akld2g18u25-ceph","g18u25-ceph", "ntr-cop02-ceph","cop02-ceph"],
+    "10.31.88.130": ["akld2g18u26-ceph","g18u26-ceph", "ntr-cop03-ceph","cop03-ceph"],
+    "10.31.88.135": ["akld2g18u44-ceph","g18u44-ceph", "ntr-cop08-ceph","cop08-ceph"],
+    "10.31.88.136": ["akld2g18u27-ceph","g18u27-ceph", "ntr-cop09-ceph","cop09-ceph"],
+    "10.31.88.138": ["akld2g18u28-ceph","g18u28-ceph", "ntr-cop11-ceph","cop11-ceph"],
+}
+
+rename_h18_entries_to_i18 = { # ITS changed the rack names on us :(
+
+    "172.31.80.131": ["akld2h18u23-m","h18u23-m","d2ntrcop04-idrac","ntr-cop04-m","cop04-m"],
+    "172.31.80.132": ["akld2h18u24-m","h18u24-m","d2ntrcop05-idrac","ntr-cop05-m","cop05-m"],
+    "172.31.80.133": ["akld2h18u25-m","h18u25-m","d2ntrcop06-idrac","ntr-cop06-m","cop06-m"],
+    "172.31.80.134": ["akld2h18u26-m","h18u26-m","d2ntrcop07-idrac","ntr-cop07-m","cop07-m"],
+    "172.31.80.137": ["akld2h18u27-m","h18u27-m","d2ntrcop10-idrac","ntr-cop10-m","cop10-m"],
+
+    "172.31.80.32": ["akld2h18a17-m","h18a17-m","d2ntradm02-idrac","ntr-adm02-m","adm02-m"],
+    "172.31.80.42": ["akld2h18a18-m","h18a18-m","d2ntrctr02-idrac","ntr-ctr02-m","ctr02-m"],
+    #
+    "172.31.80.68": ["akld2h18s01-m","h18s01-m","d2ntrsto05-idrac","ntr-sto05-m","sto05-m"],
+    "172.31.80.69": ["akld2h18s03-m","h18s03-m","d2ntrsto06-idrac","ntr-sto06-m","sto06-m"],
+    "172.31.80.70": ["akld2h18s05-m","h18s05-m","d2ntrsto07-idrac","ntr-sto07-m","sto07-m"],
+    "172.31.80.71": ["akld2h18s07-m","h18s07-m","d2ntrsto08-idrac","ntr-sto08-m","sto08-m"],
+    "172.31.80.73": ["akld2h18s09-m","h18s09-m","d2ntrsto10-idrac","ntr-sto10-m","sto10-m"],
+    "172.31.80.75": ["akld2h18s11-m","h18s11-m","d2ntrsto12-idrac","ntr-sto12-m","sto12-m"],
+    "172.31.80.77": ["akld2h18s13-m","h18s13-m","d2ntrsto14-idrac","ntr-sto14-m","sto14-m"],
+
+    "10.31.80.32": ["akld2h18a17-p","h18a17-p", "ntr-adm02-p","adm02-p", "adm02"],
+    "10.31.80.42": ["akld2h18a18-p","h18a18-p", "ntr-ctr02-p","ctr02-p", "ctr02"],
+    #
+    "10.31.80.68": ["akld2h18s01-p","h18s01-p", "ntr-sto05-p","sto05-p", "sto05"],
+    "10.31.80.69": ["akld2h18s03-p","h18s03-p", "ntr-sto06-p","sto06-p", "sto06"],
+    "10.31.80.70": ["akld2h18s05-p","h18s05-p", "ntr-sto07-p","sto07-p", "sto07"],
+    "10.31.80.71": ["akld2h18s07-p","h18s07-p", "ntr-sto08-p","sto08-p", "sto08"],
+    "10.31.80.73": ["akld2h18s09-p","h18s09-p", "ntr-sto10-p","sto10-p", "sto10"],
+    "10.31.80.75": ["akld2h18s11-p","h18s11-p", "ntr-sto12-p","sto12-p", "sto12"],
+    "10.31.80.77": ["akld2h18s13-p","h18s13-p", "ntr-sto14-p","sto14-p", "sto14"],
+    #
+    "10.31.88.68": ["akld2h18s01-ceph","h18s01-ceph", "ntr-sto05-ceph","sto05-ceph"],
+    "10.31.88.69": ["akld2h18s03-ceph","h18s03-ceph", "ntr-sto06-ceph","sto06-ceph"],
+    "10.31.88.70": ["akld2h18s05-ceph","h18s05-ceph", "ntr-sto07-ceph","sto07-ceph"],
+    "10.31.88.71": ["akld2h18s07-ceph","h18s07-ceph", "ntr-sto08-ceph","sto08-ceph"],
+    "10.31.88.73": ["akld2h18s09-ceph","h18s09-ceph", "ntr-sto10-ceph","sto10-ceph"],
+    "10.31.88.75": ["akld2h18s11-ceph","h18s11-ceph", "ntr-sto12-ceph","sto12-ceph"],
+    "10.31.88.77": ["akld2h18s13-ceph","h18s13-ceph", "ntr-sto14-ceph","sto14-ceph"],
+    #
+    "10.31.92.68": ["akld2h18s01-repl","h18s01-repl", "ntr-sto05-repl","sto05-repl"],
+    "10.31.92.69": ["akld2h18s03-repl","h18s03-repl", "ntr-sto06-repl","sto06-repl"],
+    "10.31.92.70": ["akld2h18s05-repl","h18s05-repl", "ntr-sto07-repl","sto07-repl"],
+    "10.31.92.71": ["akld2h18s07-repl","h18s07-repl", "ntr-sto08-repl","sto08-repl"],
+    "10.31.92.73": ["akld2h18s09-repl","h18s09-repl", "ntr-sto10-repl","sto10-repl"],
+    "10.31.92.75": ["akld2h18s11-repl","h18s11-repl", "ntr-sto12-repl","sto12-repl"],
+    "10.31.92.77": ["akld2h18s13-repl","h18s13-repl", "ntr-sto14-repl","sto14-repl"],
+    #
+    "10.31.80.131": ["akld2h18u23-p","h18u23-p", "ntr-cop04-p","cop04-p"],
+    "10.31.80.132": ["akld2h18u24-p","h18u24-p", "ntr-cop05-p","cop05-p"],
+    "10.31.80.133": ["akld2h18u25-p","h18u25-p", "ntr-cop06-p","cop06-p"],
+    "10.31.80.134": ["akld2h18u26-p","h18u26-p", "ntr-cop07-p","cop07-p"],
+    "10.31.80.137": ["akld2h18u27-p","h18u27-p", "ntr-cop10-p","cop10-p"],
+    #
+    "10.31.84.131": ["akld2h18u23-api","h18u23-api", "ntr-cop04-api","cop04-api", "akld2h18u23", "cop04"],
+    "10.31.84.132": ["akld2h18u24-api","h18u24-api", "ntr-cop05-api","cop05-api", "akld2h18u24", "cop05"],
+    "10.31.84.133": ["akld2h18u25-api","h18u25-api", "ntr-cop06-api","cop06-api", "akld2h18u25", "cop06"],
+    "10.31.84.134": ["akld2h18u26-api","h18u26-api", "ntr-cop07-api","cop07-api", "akld2h18u26", "cop07"],
+    "10.31.84.137": ["akld2h18u27-api","h18u27-api", "ntr-cop10-api","cop10-api", "akld2h18u27", "cop10"],
+    #
+    "10.31.88.131": ["akld2h18u23-ceph","h18u23-ceph", "ntr-cop04-ceph","cop04-ceph"],
+    "10.31.88.132": ["akld2h18u24-ceph","h18u24-ceph", "ntr-cop05-ceph","cop05-ceph"],
+    "10.31.88.133": ["akld2h18u25-ceph","h18u25-ceph", "ntr-cop06-ceph","cop06-ceph"],
+    "10.31.88.134": ["akld2h18u26-ceph","h18u26-ceph", "ntr-cop07-ceph","cop07-ceph"],
+    "10.31.88.137": ["akld2h18u27-ceph","h18u27-ceph", "ntr-cop10-ceph","cop10-ceph"],
+}
+
+switch_renaming_from_h_to_i = { # ITS changed the rack names on us :(
+    "172.31.80.3": ["akld2h18x27","ntr-x3-prov2","x3-m","x3","h18x37-m","h18x37","akld2h18x27-m"],
+    "172.31.80.5": ["akld2h18x32","ntr-x5-core2","x5-m","x5","h18x32-m","h18x32", "akld2h18x32-m"],
+    "172.31.80.7": ["akld2h18x31","ntr-x7-core4","x7-m","x7","h18x31-m","h18x31", "akld2h18x31-m"],
+}
+
+switch_renaming_from_g_to_h = { # ITS changed the rack names on us :(
+    "172.31.80.1": ["akld2g18x40", "ntr-x1-mgmt","x1-m","x1","g18x40-m","g18x40", "akld2g18x40-m"],
+    "172.31.80.2": ["akld2g18x37","ntr-x2-prov1","x2-m","x2","g18x37-m","g18x37", "akld2g18x37-m"],
+    "172.31.80.4": ["akld2g18x32","ntr-x4-core1","x4-m","x4","g18x32-m","g18x32", "akld2g18x32-m"],
+    "172.31.80.6": ["akld2g18x31","ntr-x6-core3","x6-m","x6","g18x31-m","g18x31", "akld2g18x31-m"],
+}
+
+def add_hosts(hosts):
+    for ip in hosts:
+        create_host_record(host_name = hosts[ip][0]+".nectar.auckland.ac.nz", ip=ip) 
+        for n in range(1,len(hosts[ip])):
+            add_host_alias(host_name=hosts[ip][0]+".nectar.auckland.ac.nz", alias=hosts[ip][n]+".nectar.auckland.ac.nz")
+    print "done"
+
+def add_aliases(hosts):
+    for ip in hosts:
+        for n in range(1,len(hosts[ip])):
+            add_host_alias(host_name=hosts[ip][0]+".nectar.auckland.ac.nz", alias=hosts[ip][n]+".nectar.auckland.ac.nz")
+    print "done"
+
+def dump_hosts(hosts, default_domain=".nectar.auckland.ac.nz"):
+    for ip in hosts:
+        r = get_host_by_ip(ip_v4=ip)
+        for h in r:
+            print get_host(host_name=h , fields="ipv4addrs,name,dns_name,aliases,dns_aliases,configure_for_dns")
+        #print get_host(host_name=hosts[ip][0]+default_domain , fields="ipv4addrs,name,dns_name,aliases,dns_aliases,configure_for_dns")
+    print "done"
+    
+#add_aliases(hosts=migration_alias)
+#x = { 
+#    "130.216.189.3": ["ng2.auckland.ac.nz"], 
+#}
+#dump_hosts(hosts=x, default_domain='')
+#add_hosts(h18_switches)
+
+import re
+def rename_hosts(hosts, from_expr, to_expr):
+    for ip in hosts:
+        for n in range(1,len(hosts[ip])):
+            delete_host_alias(host_name=hosts[ip][0]+".nectar.auckland.ac.nz", alias=hosts[ip][n]+".nectar.auckland.ac.nz")
+        delete_host_record(host_name=hosts[ip][0]+".nectar.auckland.ac.nz")
+        
+        new_hostname = re.sub(from_expr, to_expr, hosts[ip][0])
+        create_host_record(host_name = new_hostname+".nectar.auckland.ac.nz", ip=ip) 
+        for n in range(1,len(hosts[ip])):
+            new_alias = re.sub(from_expr, to_expr, hosts[ip][n])
+            add_host_alias(host_name=new_hostname+".nectar.auckland.ac.nz", alias=new_alias+".nectar.auckland.ac.nz")
+
+#rename_hosts(rename_h18_entries_to_i18, "^(.*)h18[aus]", r"\1i18u")
+#rename_hosts(switch_renaming_from_h_to_i, "^(.*)h18", r"\1i18")
+#rename_hosts(rename_G18_entries_to_h18, "^(.*)g18[aus]", r"\1h18u")
+#rename_hosts(switch_renaming_from_g_to_h, "^(.*)g18", r"\1h18")
+dump_hosts(hosts=switch_renaming_from_g_to_h)
