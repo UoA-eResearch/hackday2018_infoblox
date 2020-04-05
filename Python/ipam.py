@@ -230,7 +230,8 @@ def enumerate_hosts(args):
     yield new_args
   
 from argparse import RawTextHelpFormatter
-#Process arguments parse to CLI client 
+#Process sys.argv arguments
+# @return [argparse.Namespace] All the arguments (including unused ones), are return as args.<x> where <x> is defined by dest=
 def parse_args():
   parser = argparse.ArgumentParser(description='UoA NeCTar IPAM queries', add_help=False, formatter_class=RawTextHelpFormatter)
   parser.add_argument('-?', '--help', action='help', default=argparse.SUPPRESS, help=argparse._('show this help message and exit'))
@@ -323,7 +324,7 @@ def run(args):
       for a in res['dns_aliases']:
         print "  ALIAS ", a
 
-############# Command line version, but doesn't work on NeCTaR, as we look to have been firewalled again #########
+#Test run, with fake arguments, so we don't need to run from the command line.
 def fake_cli_args():
 
   #args = Args(tdc_rack="h15",tdc_rack_u="35",management=True,api=True,ceph=True,replication=True)
@@ -336,5 +337,6 @@ Args = recordtype('Args', [ ("host_ip", None), ("hostname", None), ("alias", Non
 
 #fake_cli_args()
 #exit(0)
+
 run(args=parse_args())
 
