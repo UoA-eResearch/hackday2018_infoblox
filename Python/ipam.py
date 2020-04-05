@@ -229,12 +229,14 @@ def enumerate_hosts(args):
     new_args.hostname="akld2%s-repl.nectar.auckland.ac.nz"%(short_hostname)
     yield new_args
   
+from argparse import RawTextHelpFormatter
 #Process arguments parse to CLI client 
 def parse_args():
-  parser = argparse.ArgumentParser(description='UoA NeCTar IPAM queries', add_help=False)
+  parser = argparse.ArgumentParser(description='UoA NeCTar IPAM queries', add_help=False, formatter_class=RawTextHelpFormatter)
   parser.add_argument('-?', '--help', action='help', default=argparse.SUPPRESS, help=argparse._('show this help message and exit'))
   parser.add_argument('-i', '--ip', dest='host_ip', help='action against this host ip')
   parser.add_argument('-h', '--hostname', dest='hostname', help='host name')
+  parser.add_argument('-H', '--re_hostname', dest='re_hostname', help='host name as regular expression (ensure you use ^ and $)')
   parser.add_argument('-a', '--alias', dest='alias',  help='alias for dns entry')
   parser.add_argument('-c', '--cname', dest='cname',  help='cname for dns entry')
   parser.add_argument('-n', '--new', dest='new_entry', action='store_true', help='create new dns entry')
@@ -242,12 +244,12 @@ def parse_args():
   parser.add_argument('-d', '--delete', dest='delete_entry',  help='delete dns entry')
   parser.add_argument('-r', '--rack', dest='tdc_rack', help='TDC Rack (when using autogeneration)')
   parser.add_argument('-u', '--u', dest='tdc_rack_u', help='TDC Rack U (when using autogeneration)')
-  parser.add_argument('-x', '--switch', dest='tdc_rack_x', action='store_true', help='TDC Rack U is a switch (when using autogeneration)')
-  parser.add_argument('--mgmt', dest='management', action='store_true', help='Generate management address from TDC rack and u')
-  parser.add_argument('--prov', dest='provisioning', action='store_true', help='Generate provisioning address from TDC rack and u')
-  parser.add_argument('--api', dest='api', action='store_true', help='Generate api address from TDC rack and u')
-  parser.add_argument('--ceph', dest='ceph', action='store_true', help='Generate ceph storage network address from TDC rack and u')
-  parser.add_argument('--repl', dest='replication', action='store_true', help='Generate replication address from TDC rack and u')
+  parser.add_argument('-x', '--switch', dest='tdc_rack_x', action='store_true', help='TDC Rack U is a switch (so name is <rack>x<u>)')
+  parser.add_argument('--mgmt', dest='management', action='store_true', help='Generate management address. Needs --rack and --u')
+  parser.add_argument('--prov', dest='provisioning', action='store_true', help='Generate provisioning address. Needs --rack and --u')
+  parser.add_argument('--api', dest='api', action='store_true', help='Generate api address. Needs --rack and --u')
+  parser.add_argument('--ceph', dest='ceph', action='store_true', help='Generate ceph storage network address. Needs --rack and --u')
+  parser.add_argument('--repl', dest='replication', action='store_true', help='Generate replication address. Needs --rack and --u')
   return parser.parse_args()
   
 #Show, Modify, Delete or Create IPAM DNS entries in Infoblox
@@ -265,6 +267,13 @@ def run(args):
     for new_args in enumerate_hosts(args):
       run(new_args)
     return #finished enumeration
+    
+  elif args.re_hostname is not None:
+    host_list = get_host_by_re(api_fd=api_fd, re=args.re_hostname)
+    if host_list is not None:
+      for h in host_list:
+        run(args = Args(hostname=h))
+    return
 
   elif args.new_entry:
     if args.host_ip is not None and args.hostname is not None:
@@ -316,12 +325,14 @@ def run(args):
 
 ############# Command line version, but doesn't work on NeCTaR, as we look to have been firewalled again #########
 def fake_cli_args():
-  Args = recordtype('Args', [ ("host_ip", None), ("hostname", None), ("alias", None), ("cname", None), ("delete_entry", False), ("modify_entry", False), ("new_entry", False), ("management", False), ("provisioning", False), ("api", False), ("ceph", False), ("replication", False), ("tdc_rack", None), ("tdc_rack_u", None), ("tdc_rack_x", False) ] )
 
   #args = Args(tdc_rack="h15",tdc_rack_u="35",management=True,api=True,ceph=True,replication=True)
   args = Args(hostname='h15u35.nectar.auckland.ac.nz')
   #args = Args(host_ip='130.216.81.226')
   run(args=args)
+  
+#Create an Args record, so we can create dummy ARGV entries for testing.
+Args = recordtype('Args', [ ("host_ip", None), ("hostname", None), ("alias", None), ("cname", None), ("delete_entry", False), ("modify_entry", False), ("new_entry", False), ("management", False), ("provisioning", False), ("api", False), ("ceph", False), ("replication", False), ("tdc_rack", None), ("tdc_rack_u", None), ("tdc_rack_x", False), ("re_hostname", None) ] )
 
 #fake_cli_args()
 #exit(0)
