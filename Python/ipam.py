@@ -4,8 +4,11 @@ import infoblox #Uses Igor Feoktistov's infoblox.py
 import json
 import os
 import argparse
-from collections import namedtuple
+from recordtype import recordtype #pip install recordtype
 
+#Open a connetion to IPAM, using the authentication tokens in conf.json
+# @return [Infoblox] 
+# @raise [SystemExit] when the 1. conf.json can't be read, or 2, when a connection can't be established
 def ipam_open():
   conf_file = os.path.abspath( os.path.join( os.path.dirname(__file__), '../conf/conf.json' ) )
   #conf_file = '/home/ntradm/etc/ipam.json'
@@ -21,16 +24,24 @@ def ipam_open():
     return api_fd
   except Exception as e:
     print e
-    raise SystemExit(1)
+    raise SystemExit(2)
 
+#wrapper around infoblox.create_host_record to catch any exceptions
+#Prints and ignores exceptions raised by Infoblox calls, which may be a bad idea
+# @param api_fd [Infoblox] from ipam_open
+# @param hostname [String] Hostname for record created
+# @param ip [String] IPV4 ip address, as a string
 def create_host_record(api_fd, host_name, ip):
     try:
       print "creating A record", host_name, " ", ip
       api_fd.create_host_record(address=ip,fqdn=host_name)
     except Exception as e:
       print e
-      raise SystemExit(1)
 
+#wrapper around infoblox.delete_host_record to catch any exceptions
+#Prints and ignores exceptions raised by Infoblox calls, which may be a bad idea
+# @param api_fd [Infoblox] from ipam_open
+# @param hostname [String] Hostname for record created
 def delete_host_record(api_fd, host_name):
     try:
       print "Deleting A record", host_name
@@ -38,6 +49,13 @@ def delete_host_record(api_fd, host_name):
     except Exception as e:
       print e
 
+#wrapper around infoblox.add_host_alias to catch any exceptions
+#Prints and ignores exceptions raised by Infoblox calls, which may be a bad idea
+#Infoblox ALIAS records are mapped to DNS A records. 
+#This is a way to group hostnames within infoblox. ALIAS does not exist in DNS
+# @param api_fd [Infoblox] from ipam_open
+# @param hostname [String] Hostname, used as key to add alias
+# @param alias [String] Second DNS A record name for this host.
 def add_host_alias(api_fd, host_name, alias):
     try:
       print "creating alias ", host_name, " ", alias
@@ -45,6 +63,13 @@ def add_host_alias(api_fd, host_name, alias):
     except Exception as e:
       print e
 
+#wrapper around infoblox.delete_host_alias to catch any exceptions
+#Prints and ignores exceptions raised by Infoblox calls, which may be a bad idea
+#Infoblox ALIAS records are mapped to DNS A records. 
+#This is a way to group hostnames within infoblox. ALIAS does not exist in DNS
+# @param api_fd [Infoblox] from ipam_open
+# @param hostname [String] Hostname, used as key to delete alias from
+# @param alias [String] Second DNS A record name for this host.
 def delete_host_alias(api_fd, host_name, alias):
     try:
       print "removing alias ", host_name, " ", alias
@@ -52,6 +77,12 @@ def delete_host_alias(api_fd, host_name, alias):
     except Exception as e:
       print e
 
+#wrapper around infoblox.create_cname_record to catch any exceptions
+#Prints and ignores exceptions raised by Infoblox calls, which may be a bad idea
+#DNS CNAME records are mappings to A records, using the A record hostname as the key 
+# @param api_fd [Infoblox] from ipam_open
+# @param hostname [String] Hostname, used as key to add CNAME
+# @param cname [String] DNS CNAME hostname for this host.
 def add_host_cname(api_fd, host_name, cname):
     try:
       print "creating cname ", host_name, " ", alias
@@ -59,42 +90,183 @@ def add_host_cname(api_fd, host_name, cname):
     except Exception as e:
       print e
 
+#wrapper around infoblox.delete_cname_record to catch any exceptions
+#Prints and ignores exceptions raised by Infoblox calls, which may be a bad idea
+#DNS CNAME records are mappings to A records, using the A record hostname as the key 
+# @param api_fd [Infoblox] from ipam_open
+# @param cname [String] DNS CNAME hostname for a host (we don't need the A record Hostname to delete a CNAME record).
 def delete_host_cname(api_fd, cname):
     try:
       print "removing cname ", cname
-      api_fd.create_cname_record(self, fqdn=cname)
+      api_fd.delete_cname_record(self, fqdn=cname)
     except Exception as e:
       print e
 
+#wrapper around infoblox.get_host_by_regexp to catch any exceptions
+#Current call does not pick up infoblox ALIAS or CNAME records for the hostname
+# @param api_fd [Infoblox] from ipam_open
+# @param re [String] Hostname as regular expression, 
+# @param fields [String] list of fields for infoblox to return (see infoblox api docs
+# @return [Dictionary] Result of Rest api call by 'request', parsed by reqest.json
+def get_host_by_re(api_fd, re):
+  try:
+    return api_fd.get_host_by_regexp(fqdn=re)
+  except Exception as e:
+    print e
+
+#add missing infoblox get_host_by_alias
+# @param api_fd [Infoblox] from ipam_open
+# @param alais [String] ALIAS for hostname
+# @param fields [String] list of fields for infoblox to return (see infoblox api docs
+# @return [Dictionary] Result of Rest api call by 'request', parsed by reqest.json
+import requests
+def get_host_by_alias(api_fd, alias, fields=None):
+  """ Implements IBA REST API call to retrieve host record fields
+  Returns hash table of fields with field name as a hash key
+  :param fqdn: hostname in FQDN
+  :param fields: comma-separated list of field names (optional)
+  """
+  if fields:
+      rest_url = 'https://' + api_fd.iba_host + '/wapi/v' + api_fd.iba_wapi_version + '/record:host?alias=' + alias + '&view=' + api_fd.iba_dns_view + '&_return_fields=' + fields
+  else:
+      rest_url = 'https://' + api_fd.iba_host + '/wapi/v' + api_fd.iba_wapi_version + '/record:host?alias=' + alias + '&view=' + api_fd.iba_dns_view
+  try:
+      r = requests.get(url=rest_url, auth=(api_fd.iba_user, api_fd.iba_password), verify=api_fd.iba_verify_ssl)
+      r_json = r.json()
+      if r.status_code == 200:
+  	if len(r_json) > 0:
+  	    return r_json[0]
+  	else:
+  	    raise infoblox.InfobloxNotFoundException("No hosts found: " + alias)
+      else:
+  	if 'text' in r_json:
+  	    raise infoblox.InfobloxNotFoundException(r_json['text'])
+  	else:
+  	    r.raise_for_status()
+  except ValueError:
+      raise Exception(r)
+  except Exception:
+      raise
+
+
+#wrapper around infoblox.get_host to catch any exceptions
+#Current call does not pick up infoblox ALIAS or CNAME records for the hostname
+# @param api_fd [Infoblox] from ipam_open
+# @param hostname [String] Hostname
+# @param fields [String] list of fields for infoblox to return (see infoblox api docs
+# @return [Dictionary] Result of Rest api call by 'request', parsed by reqest.json
 def get_host(api_fd, host_name, fields=None):
     try:
-      print "Getting host details ", host_name
+      #print "Getting host details for: ", host_name
       return api_fd.get_host(fqdn=host_name, fields=fields)
+    except infoblox.InfobloxNotFoundException as e:
+      try:
+        return get_host_by_alias(api_fd=api_fd, alias = host_name, fields=fields)
+      except Exception as e:
+        print e
     except Exception as e:
       print e
 
-def get_host_by_ip(api_fd, ip_v4, fields=None):
+#wrapper around infoblox.create_cname_record to catch any exceptions
+#Current call does not pick up infoblox ALIAS or CNAME records for the hostname
+# @param api_fd [Infoblox] from ipam_open
+# @param ip_v4 [String] IPV4 address of record
+# @return [Dictionary] Result of Rest api call by 'request', parsed by reqest.json
+def get_host_by_ip(api_fd, ip_v4):
     try:
       return api_fd.get_host_by_ip(ip_v4=ip_v4)
     except Exception as e:
       print e
       
+#Generate the IP address and Hostname, from the TDC rack and u. 
+#Called from run when args.tdc_rack is not None.
+# @param args [Record] Either generated by parse_args() or from fake_cli_args()
+# @yield new_args [Record] yield the IP and Hostname, with all other 'args' copied to new_args, except tdc_rack, tdc_rack_u and tdc_rack_x
+def enumerate_hosts(args):
+  rack_to_subnet = { 'b15': [82,100], 'd15': [81,150], 'e15': [81,50], 'h15': [83,150], 'i15': [83,50], 'b18': [82,0], 'd18': [81,100], 'e18': [81,0], 'h18': [83,100], 'i18': [83,0]}
+  r2s = rack_to_subnet[args.tdc_rack]
+  if r2s is None:
+    print "Unknown Rack %s"%(args.tdc_rack)
+    raise SystemExit(2)
+  else:
+    subnet = r2s[0]
+    ip = r2s[1] + int(args.tdc_rack_u)
+    uchar = 'x' if args.tdc_rack_x else 'u'
+    short_hostname = "%s%s%02d"%(args.tdc_rack, uchar, int(args.tdc_rack_u))
+    
+  new_args = args
+  new_args.tdc_rack=None
+  new_args.tdc_rack_u=None
+  new_args.tdc_rack_x=False
+  
+  if args.management:
+    new_args.host_ip = "172.31.%s.%s"%(subnet,ip) 
+    new_args.hostname="akld2%s-m.nectar.auckland.ac.nz"%(short_hostname)
+    yield new_args
+    
+    #If we get the inband 172.31.84.0/22 allocated, then we want these -m2 addresses too
+    #new_args.host_ip = "172.31.%s,%s"%(subnet+4,ip) 
+    #new_args.hostname="akld2%s-m2.nectar.auckland.ac.nz"%(short_hostname)
+    #yield new_args
+    
+  if args.provisioning:
+    new_args.host_ip = "10.31.%s.%s"%(subnet,ip) 
+    new_args.hostname="akld2%s-p.nectar.auckland.ac.nz"%(short_hostname)
+    yield new_args
+    
+  if args.api:
+    new_args.host_ip = "10.31.%s.%s"%(subnet+4,ip) 
+    new_args.hostname="akld2%s-api.nectar.auckland.ac.nz"%(short_hostname)
+    yield new_args
+    
+  if args.ceph:
+    new_args.host_ip = "10.31.%s.%s"%(subnet+8,ip) 
+    new_args.hostname="akld2%s-ceph.nectar.auckland.ac.nz"%(short_hostname)
+    yield new_args
+    
+  if args.replication:
+    new_args.host_ip = "10.31.%s.%s"%(subnet+12,ip) 
+    new_args.hostname="akld2%s-repl.nectar.auckland.ac.nz"%(short_hostname)
+    yield new_args
+  
+#Process arguments parse to CLI client 
 def parse_args():
-  parser = argparse.ArgumentParser(description='UoA NeCTar IPAM queries')
-  #parser.add_argument('-s', '--show', dest='show', action='store_true', help='show current dns entry')
+  parser = argparse.ArgumentParser(description='UoA NeCTar IPAM queries', add_help=False)
+  parser.add_argument('-?', '--help', action='help', default=argparse.SUPPRESS, help=argparse._('show this help message and exit'))
   parser.add_argument('-i', '--ip', dest='host_ip', help='action against this host ip')
-  parser.add_argument('-H', '--hostname', dest='hostname', help='host name')
+  parser.add_argument('-h', '--hostname', dest='hostname', help='host name')
   parser.add_argument('-a', '--alias', dest='alias',  help='alias for dns entry')
   parser.add_argument('-c', '--cname', dest='cname',  help='cname for dns entry')
   parser.add_argument('-n', '--new', dest='new_entry', action='store_true', help='create new dns entry')
   parser.add_argument('-m', '--modify', dest='modify_entry', action='store_true', help='modify existing dns entry')
   parser.add_argument('-d', '--delete', dest='delete_entry',  help='delete dns entry')
+  parser.add_argument('-r', '--rack', dest='tdc_rack', help='TDC Rack (when using autogeneration)')
+  parser.add_argument('-u', '--u', dest='tdc_rack_u', help='TDC Rack U (when using autogeneration)')
+  parser.add_argument('-x', '--switch', dest='tdc_rack_x', action='store_true', help='TDC Rack U is a switch (when using autogeneration)')
+  parser.add_argument('--mgmt', dest='management', action='store_true', help='Generate management address from TDC rack and u')
+  parser.add_argument('--prov', dest='provisioning', action='store_true', help='Generate provisioning address from TDC rack and u')
+  parser.add_argument('--api', dest='api', action='store_true', help='Generate api address from TDC rack and u')
+  parser.add_argument('--ceph', dest='ceph', action='store_true', help='Generate ceph storage network address from TDC rack and u')
+  parser.add_argument('--repl', dest='replication', action='store_true', help='Generate replication address from TDC rack and u')
   return parser.parse_args()
   
+#Show, Modify, Delete or Create IPAM DNS entries in Infoblox
+# @param args [Record] Either generated by parse_args() or from fake_cli_args()
 def run(args):
   api_fd = ipam_open()
+  #print args
+  res = None
+  
+  if args.tdc_rack is not None:
+    if args.tdc_rack_u is None:
+      print "Require rack U"
+      raise SystemExit(2)
+      
+    for new_args in enumerate_hosts(args):
+      run(new_args)
+    return #finished enumeration
 
-  if args.new_entry:
+  elif args.new_entry:
     if args.host_ip is not None and args.hostname is not None:
       create_host_record(api_fd=api_fd, host_name=args.hostname, ip=args.host_ip)
       res = get_host(api_fd=api_fd, host_name=args.hostname, fields="ipv4addrs,name,dns_name,aliases,dns_aliases")
@@ -124,7 +296,10 @@ def run(args):
   else: # args.show
     if args.host_ip is not None:
       r1 = get_host_by_ip(api_fd=api_fd, ip_v4=args.host_ip)
-      res = get_host(api_fd=api_fd, host_name = r1[0], fields="ipv4addrs,name,dns_name,aliases,dns_aliases") 
+      if r1 is None:
+        res = None
+      else:
+        res = get_host(api_fd=api_fd, host_name = r1[0], fields="ipv4addrs,name,dns_name,aliases,dns_aliases") 
     elif args.hostname:
       res = get_host(api_fd=api_fd, host_name = args.hostname, fields="ipv4addrs,name,dns_name,aliases,dns_aliases") 
     else:
@@ -132,57 +307,23 @@ def run(args):
       
   if res is not None:
     #print res
-    for r in res['ipv4addrs']:
-      print r['ipv4addr'], ' ', r['host']
-    for a in res['dns_aliases']:
-      print "  ALIAS ", a
-
-def add_node_body(short_hostname, suffix, ip):
-  args = Args(host_ip = ip , hostname="akld2%s%s.nectar.auckland.ac.nz"%(short_hostname,suffix), new_entry=True)
-  run(args=args)
-  args = Args(hostname="akld2%s%s.nectar.auckland.ac.nz"%(short_hostname, suffix), alias="%s%s.nectar.auckland.ac.nz"%(short_hostname,suffix), modify_entry=True)
-  run(args=args)
-
-def add_nectar_node(short_hostname, ipv4_subnet, ipv4_host, mgmt=True, prov=True, api=True, ceph=False):
-  #Mimic argv argument list
-  if mgmt:
-    add_node_body(short_hostname=short_hostname, suffix='-m', ip="172.31.%d.%d"%(net_prefix, ipv4_subnet,ipv4_host) )
-  if prov:
-    add_node_body(short_hostname=short_hostname, suffix='-p', ip="10.31.%d.%d"%(net_prefix, ipv4_subnet,ipv4_host) )
-  if api:
-    add_node_body(short_hostname=short_hostname, suffix='-api', ip="10.31.%d.%d"%(net_prefix, ipv4_subnet+4,ipv4_host) )
-  if ceph:
-    add_node_body(short_hostname=short_hostname, suffix='-ceph', ip="10.31.%d.%d"%(net_prefix, ipv4_subnet+8,ipv4_host) )
-    
-
-def print_basic_nectar_host(short_hostname):
-  args = Args(hostname="akld2%s-m.nectar.auckland.ac.nz"%(short_hostname))
-  run(args=args)
-  args = Args(hostname="akld2%s-p.nectar.auckland.ac.nz"%(short_hostname))
-  run(args=args)
-  args = Args(hostname="akld2%s-api.nectar.auckland.ac.nz"%(short_hostname))
-  run(args=args)
-  
-def print_host(host_name=None, ip=None):
-  if ip is not None:
-    args = Args(host_ip=ip)
-  else:
-    args = Args(hostname=host_name)
-  run(args=args)
-  
-
-Args = namedtuple('Args', ["host_ip", "hostname", "alias", "cname", "delete_entry", "modify_entry", "new_entry"],  verbose=False, rename=False)
-Args.__new__.func_defaults = (None,   None,        None,    None,    False,         False,           False)
-
-#add_basic_nectar_node(short_hostname='i15u34', ipv4_subnet=83, ipv4_host=84)
-#print_basic_nectar_host(short_hostname='h18u02')
-print_host(host_name='ntr-sto02-p.nectar.auckland.ac.nz')
-print_host(host_name='akld2h18u03-p.nectar.auckland.ac.nz')
-print_host(ip='10.31.80.65')
-
-exit(0)
+    if 'ipv4addrs' in res.keys():
+      for r in res['ipv4addrs']:
+        print r['ipv4addr'], ' ', r['host']
+    if 'dns_aliases' in res.keys():
+      for a in res['dns_aliases']:
+        print "  ALIAS ", a
 
 ############# Command line version, but doesn't work on NeCTaR, as we look to have been firewalled again #########
+def fake_cli_args():
+  Args = recordtype('Args', [ ("host_ip", None), ("hostname", None), ("alias", None), ("cname", None), ("delete_entry", False), ("modify_entry", False), ("new_entry", False), ("management", False), ("provisioning", False), ("api", False), ("ceph", False), ("replication", False), ("tdc_rack", None), ("tdc_rack_u", None), ("tdc_rack_x", False) ] )
 
+  #args = Args(tdc_rack="h15",tdc_rack_u="35",management=True,api=True,ceph=True,replication=True)
+  args = Args(hostname='h15u35.nectar.auckland.ac.nz')
+  #args = Args(host_ip='130.216.81.226')
+  run(args=args)
+
+#fake_cli_args()
+#exit(0)
 run(args=parse_args())
 
