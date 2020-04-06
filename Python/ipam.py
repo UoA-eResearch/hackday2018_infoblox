@@ -16,14 +16,14 @@ def ipam_open():
     with open( conf_file ) as f:
       conf = json.load(f)
   except Exception as e:
-    print e
+    print "ipam_open(1): ", e
     raise SystemExit(1)
     
   try:
     api_fd = infoblox.Infoblox('ipam.auckland.ac.nz', conf['user'], conf['password'], '2.5', 'default', 'default', True)
     return api_fd
   except Exception as e:
-    print e
+    print "ipam_open(2): ", e
     raise SystemExit(2)
 
 #wrapper around infoblox.create_host_record to catch any exceptions
@@ -36,7 +36,7 @@ def create_host_record(api_fd, host_name, ip):
       print "creating A record", host_name, " ", ip
       api_fd.create_host_record(address=ip,fqdn=host_name)
     except Exception as e:
-      print e
+      print "create_host_record(): ", e
 
 #wrapper around infoblox.delete_host_record to catch any exceptions
 #Prints and ignores exceptions raised by Infoblox calls, which may be a bad idea
@@ -47,7 +47,7 @@ def delete_host_record(api_fd, host_name):
       print "Deleting A record", host_name
       api_fd.delete_host_record(fqdn=host_name)
     except Exception as e:
-      print e
+      print "delete_host_record(): ", e
 
 #wrapper around infoblox.add_host_alias to catch any exceptions
 #Prints and ignores exceptions raised by Infoblox calls, which may be a bad idea
@@ -61,7 +61,7 @@ def add_host_alias(api_fd, host_name, alias):
       print "creating alias ", host_name, " ", alias
       api_fd.add_host_alias(host_fqdn=host_name, alias_fqdn=alias)
     except Exception as e:
-      print e
+      print "add_host_alias(): ", e
 
 #wrapper around infoblox.delete_host_alias to catch any exceptions
 #Prints and ignores exceptions raised by Infoblox calls, which may be a bad idea
@@ -75,7 +75,7 @@ def delete_host_alias(api_fd, host_name, alias):
       print "removing alias ", host_name, " ", alias
       api_fd.delete_host_alias(host_fqdn=host_name, alias_fqdn=alias)
     except Exception as e:
-      print e
+      print "delete_host_alias(): ", e
 
 #wrapper around infoblox.create_cname_record to catch any exceptions
 #Prints and ignores exceptions raised by Infoblox calls, which may be a bad idea
@@ -88,7 +88,7 @@ def add_host_cname(api_fd, host_name, cname):
       print "creating cname ", host_name, " ", alias
       api_fd.create_cname_record(self, canonical=cname, name=host_name)
     except Exception as e:
-      print e
+      print "add_host_cname(): ", e
 
 #wrapper around infoblox.delete_cname_record to catch any exceptions
 #Prints and ignores exceptions raised by Infoblox calls, which may be a bad idea
@@ -100,7 +100,7 @@ def delete_host_cname(api_fd, cname):
       print "removing cname ", cname
       api_fd.delete_cname_record(self, fqdn=cname)
     except Exception as e:
-      print e
+      print "delete_host_cname(): ", e
 
 #wrapper around infoblox.get_host_by_regexp to catch any exceptions
 #Current call does not pick up infoblox ALIAS or CNAME records for the hostname
@@ -112,7 +112,7 @@ def get_host_by_re(api_fd, re):
   try:
     return api_fd.get_host_by_regexp(fqdn=re)
   except Exception as e:
-    print e
+    print "get_host_by_re(): ", e
 
 #add missing infoblox get_host_by_alias
 # @param api_fd [Infoblox] from ipam_open
@@ -163,9 +163,9 @@ def get_host(api_fd, host_name, fields=None):
       try:
         return get_host_by_alias(api_fd=api_fd, alias = host_name, fields=fields)
       except Exception as e:
-        print e
+        print "get_host(1): ", e
     except Exception as e:
-      print e
+      print "get_host(2): ", e
 
 #wrapper around infoblox.create_cname_record to catch any exceptions
 #Current call does not pick up infoblox ALIAS or CNAME records for the hostname
@@ -176,7 +176,7 @@ def get_host_by_ip(api_fd, ip_v4):
     try:
       return api_fd.get_host_by_ip(ip_v4=ip_v4)
     except Exception as e:
-      print e
+      print "get_host_by_ip(): ", e
       
 #Generate the IP address and Hostname, from the TDC rack and u. 
 #Called from run when args.tdc_rack is not None.
