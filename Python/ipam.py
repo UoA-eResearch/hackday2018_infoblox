@@ -1,10 +1,13 @@
 #!/usr/local/bin/python
 
-import infoblox #Uses Igor Feoktistov's infoblox.py
+import sys
 import json
 import os
 import argparse
 from recordtype import recordtype #pip install recordtype
+
+sys.path.append( os.path.abspath( os.path.join( os.path.dirname(__file__), '../lib/')))
+import infoblox #Uses Igor Feoktistov's infoblox.py
 
 #Open a connetion to IPAM, using the authentication tokens in conf.json
 # @return [Infoblox] 
