@@ -1033,4 +1033,6 @@ def rename_hosts(hosts, from_expr, to_expr):
 #rename_hosts(switch_renaming_from_h_to_i, "^(.*)h18", r"\1i18")
 #rename_hosts(rename_G18_entries_to_h18, "^(.*)g18[aus]", r"\1h18u")
 #rename_hosts(switch_renaming_from_g_to_h, "^(.*)g18", r"\1h18")
-dump_hosts(hosts=switch_renaming_from_g_to_h)
+#dump_hosts(hosts=switch_renaming_from_g_to_h)
+delete_host_record('fred.nectar.auckland.ac.nz')
+#delete_host_alias('ivm28.nectar.auckland.ac.nz', 'fred.nectar.auckland.ac.nz')
