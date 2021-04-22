@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/python3
 import infoblox #Uses Igor Feoktistov's infoblox.py
 import json
 import os
@@ -9,13 +9,16 @@ with open( conf_file ) as f:
 
 
 iba_api = infoblox.Infoblox('ipam.auckland.ac.nz', conf['user'], conf['password'], '2.5', 'default', 'default', True)
-print "**** By IP ****"
+
+print( "**** By IP ****")
 try:
     #iba_api.create_host_record('130.216.218.66', 'mytardis.nectar.auckland.ac.nz') #Attach a name to an IP address
-    hosts = iba_api.get_host_by_ip('130.216.216.45') #Check that the name is attached.
-    print hosts
+    hosts = iba_api.get_host_by_ip('130.216.161.169') #Check that the name is attached.
+    print( hosts)
 except Exception as e:
-    print e
+    print( e)
+
+'''
 
 print "**** By Name *****"
 try:
@@ -30,19 +33,20 @@ try:
   print hosts
 except Exception as e:
   print e
-
-print "**** get network *****"
+'''
+print( "**** get network *****")
 try:
     hosts = iba_api.get_network(network='130.216.161.0/24')
-    print hosts
+    print( hosts)
 except Exception as e:
-  print e
+  print( e)
+'''
 
-
-#print "**** deleting host record ****"
-#try:
-#    iba_api.delete_host_record(fqdn='dashboard.uoa.nesi.org.nz')
-#except Exception as e:
-#    print e
+print "**** deleting host record ****"
+try:
+    iba_api.delete_host_record(fqdn='fred.nectar.auckland.ac.nz')
+except Exception as e:
+    print e
 
 print "**** Done ****"
+'''
