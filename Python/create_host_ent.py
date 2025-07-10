@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python3
 
 import infoblox #Uses Igor Feoktistov's infoblox.py
 import json
@@ -792,12 +792,12 @@ h15_i15_hosts = {
     "172.31.83.180": ["akld2h15x30-m", "h15x30-m", "h15x30"],
     "172.31.83.181": ["akld2h15x31-m", "h15x31-m", "h15x31"],
     "172.31.83.183": ["akld2h15x33-m", "h15x33-m", "h15x33"],
-    
+
     "10.31.83.151": ["akld2h15u01-p", "h15u01-p", "ntr-sto15-p"],
     "10.31.83.153": ["akld2h15u03-p", "h15u03-p", "ntr-sto17-p"],
     "10.31.83.155": ["akld2h15u05-p", "h15u05-p", "ntr-sto19-p"],
     "10.31.83.185": ["akld2h15u35-p", "h15u35-p"],
-    
+
     "10.31.87.185": ["akld2h15u35-api", "h15u35-api", "akld2h15u35", "h15u35"],
 
     "10.31.91.151": ["akld2h15u01-ceph", "h15u01-ceph", "ntr-sto15-ceph", "ntr-sto15", "sto15", "akld2h15u01", "h15u01"],
@@ -815,12 +815,12 @@ h15_i15_hosts = {
     "172.31.83.80": ["akld2i15x30-m", "i15x30-m", "i15x30"],
     "172.31.83.81": ["akld2i15x31-m", "i15x31-m", "i15x31"],
     "172.31.83.83": ["akld2i15x33-m", "i15x33-m", "i15x33"],
-    
+
     "10.31.83.51": ["akld2i15u01-p", "i15u01-p", "ntr-sto16-p"],
     "10.31.83.53": ["akld2i15u03-p", "i15u03-p", "ntr-sto18-p"],
     "10.31.83.55": ["akld2i15u05-p", "i15u05-p", "ntr-sto20-p"],
     "10.31.83.85": ["akld2i15u35-p", "i15u35-p"],
-    
+
     "10.31.91.51": ["akld2i15u01-ceph", "i15u01-ceph", "ntr-sto16-ceph", "ntr-sto16", "sto16", "akld2i15u01", "i15u01"],
     "10.31.91.53": ["akld2i15u03-ceph", "i15u03-ceph", "ntr-sto18-ceph", "ntr-sto18", "sto18", "akld2i15u03", "i15u03"],
     "10.31.91.55": ["akld2i15u05-ceph", "i15u05-ceph", "ntr-sto20-ceph", "ntr-sto20", "sto20", "akld2i15u01", "i15u05"],
@@ -990,7 +990,7 @@ switch_renaming_from_g_to_h = { # ITS changed the rack names on us :(
 
 def add_hosts(hosts):
     for ip in hosts:
-        create_host_record(host_name = hosts[ip][0]+".nectar.auckland.ac.nz", ip=ip) 
+        create_host_record(host_name = hosts[ip][0]+".nectar.auckland.ac.nz", ip=ip)
         for n in range(1,len(hosts[ip])):
             add_host_alias(host_name=hosts[ip][0]+".nectar.auckland.ac.nz", alias=hosts[ip][n]+".nectar.auckland.ac.nz")
     print "done"
@@ -1008,10 +1008,10 @@ def dump_hosts(hosts, default_domain=".nectar.auckland.ac.nz"):
             print get_host(host_name=h , fields="ipv4addrs,name,dns_name,aliases,dns_aliases,configure_for_dns")
         #print get_host(host_name=hosts[ip][0]+default_domain , fields="ipv4addrs,name,dns_name,aliases,dns_aliases,configure_for_dns")
     print "done"
-    
+
 #add_aliases(hosts=migration_alias)
-#x = { 
-#    "130.216.189.3": ["ng2.auckland.ac.nz"], 
+#x = {
+#    "130.216.189.3": ["ng2.auckland.ac.nz"],
 #}
 #dump_hosts(hosts=x, default_domain='')
 #add_hosts(h18_switches)
@@ -1022,12 +1022,19 @@ def rename_hosts(hosts, from_expr, to_expr):
         for n in range(1,len(hosts[ip])):
             delete_host_alias(host_name=hosts[ip][0]+".nectar.auckland.ac.nz", alias=hosts[ip][n]+".nectar.auckland.ac.nz")
         delete_host_record(host_name=hosts[ip][0]+".nectar.auckland.ac.nz")
-        
+
         new_hostname = re.sub(from_expr, to_expr, hosts[ip][0])
-        create_host_record(host_name = new_hostname+".nectar.auckland.ac.nz", ip=ip) 
+        create_host_record(host_name = new_hostname+".nectar.auckland.ac.nz", ip=ip)
         for n in range(1,len(hosts[ip])):
             new_alias = re.sub(from_expr, to_expr, hosts[ip][n])
             add_host_alias(host_name=new_hostname+".nectar.auckland.ac.nz", alias=new_alias+".nectar.auckland.ac.nz")
+
+# NOTE
+# You can have multiple host records in IPAM, which will result in multiple response to an IP Address lookup
+# You can have IPAM ALIAS records, attached to a host record, which create additional DNS A records, without a reverse IP record
+# You can have DNS CNAMES, which are a name to name mapping. These are hard to maintain, as they are not attached to the host record.
+
+# For Nectar. We have followed the pattern of having a single hostname, with attached IPAM alias records
 
 #rename_hosts(rename_h18_entries_to_i18, "^(.*)h18[aus]", r"\1i18u")
 #rename_hosts(switch_renaming_from_h_to_i, "^(.*)h18", r"\1i18")

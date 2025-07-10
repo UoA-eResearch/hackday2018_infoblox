@@ -1,15 +1,19 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import infoblox #Uses Igor Feoktistov's infoblox.py
 import json
 import os
+#from infoblox_client import connector
+#from infoblox_client import objects
 
 conf_file = os.path.abspath( os.path.join( os.path.dirname(__file__), '../conf/conf.json' ) )
 with open( conf_file ) as f:
     conf = json.load(f)
 
 
-iba_api = infoblox.Infoblox('ipam.auckland.ac.nz', conf['user'], conf['password'], '2.5', 'default', 'default', True)
+iba_api = infoblox.infoblox('ipam.auckland.ac.nz', conf['user'], conf['password'], '2.5', 'default', 'default', True)
 
+
+'''
 print( "**** By IP ****")
 try:
     #iba_api.create_host_record('130.216.218.66', 'mytardis.nectar.auckland.ac.nz') #Attach a name to an IP address
@@ -17,8 +21,6 @@ try:
     print( hosts)
 except Exception as e:
     print( e)
-
-'''
 
 print "**** By Name *****"
 try:
@@ -36,7 +38,7 @@ except Exception as e:
 '''
 print( "**** get network *****")
 try:
-    hosts = iba_api.get_network(network='130.216.161.0/24')
+    hosts = iba_api.get_network(network='10.31.80.0/24')
     print( hosts)
 except Exception as e:
   print( e)

@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python3
 
 import infoblox #Uses Igor Feoktistov's infoblox.py
 import json
